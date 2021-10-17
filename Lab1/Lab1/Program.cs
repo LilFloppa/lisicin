@@ -12,8 +12,22 @@ namespace Lab1
         static double nu = 0.05;
         static double b1 = 1.14;
         static double b4 = 2 * b1 * Math.Tan(b1);
+        static double b2 = b4 / (2 + b4);
+        static double b3 = nu * b4 * Math.Exp(b4) / 2;
 
-        static int n = 1_000_000_000;
+        static int n = 50;
+
+        static Func<double, double> f = (double x) =>
+        {
+            if (Math.Abs(x) <= 1.0)
+            {
+                double cos = Math.Cos(b1 * x);
+                cos *= cos;
+                return b2 * cos;
+            }
+            else
+                return b3 * Math.Exp(-b4 * Math.Abs(x));
+        };
 
         static double GenerateUniform()
         {
@@ -94,7 +108,6 @@ namespace Lab1
                 }
             }
         }
-
         static void CalculateMedian(string filename)
         {
             double[] x = new double[n];
@@ -119,7 +132,6 @@ namespace Lab1
 
             File.WriteAllText(filename + "_median.txt", mid.ToString());
         }
-
         static void CalculateMean(string filename)
         {
             double[] x = new double[n];
@@ -145,12 +157,33 @@ namespace Lab1
             File.WriteAllText(filename + "_mean.txt", M.ToString());
         }
 
+        static double MaxLikelihoodEstimation(int n, double tetta, double lambda, double eps)
+        {
+            double[] y = new double[n];
+            for (int i = 0; i < n; i++)
+                y[i] = GenerateRandomValue(tetta, lambda);
+
+            Func<double, double> p = (double t) =>
+            {
+                double result = 0.0;
+                for (int i = 0; i < n; i++)
+                    result += -Math.Log(f((y[i] - t) / lambda));
+
+                return result;
+            };
+
+            return Optimization.GoldenRatio(p, -5.0, 5.0, eps);
+        }
+
         static void Main(string[] args)
         {
-            GenerateTrashAsymmetric("C:/repos/data/random_trash_symmetric_1");
+            //GenerateTrashAsymmetric("C:/repos/data/random_trash_symmetric_1");
 
-            CalculateMean("C:/repos/data/random_trash_symmetric_1");
-            CalculateMedian("C:/repos/data/random_trash_symmetric_1");
+            //CalculateMean("C:/repos/data/random_trash_symmetric_1");
+            //CalculateMedian("C:/repos/data/random_trash_symmetric_1");
+
+            for (int i = 0; i < 100; i++)
+                Console.WriteLine(MaxLikelihoodEstimation(100000, 0.0, 1.0, 1.0e-9));
         }
     }
 }
