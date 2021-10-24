@@ -16,7 +16,7 @@ namespace Lab1
         static double b2 = b4 / (2 + b4);
         static double b3 = nu * b4 * Math.Exp(b4) / 2;
 
-        static int n = 50;
+        static int n = 100;
 
         static Func<double, double> f = (double x) =>
         {
@@ -109,37 +109,28 @@ namespace Lab1
                 }
             }
         }
-        static void CalculateMedian(string filename)
+        static void CalculateMedian(double[] x, string filename)
         {
-            double[] x = new double[n];
+            double[] y = new double[n];
             for (int i = 0; i < n; i++)
-                x[i] = GenerateRandomValue(0.0, 1.0);
+                y[i] = x[i];
 
-            Array.Sort(x);
-            double mid = (x[n / 2] + x[n / 2 + 1]) / 2;
+            Array.Sort(y);
+            double mid = (y[n / 2] + y[n / 2 + 1]) / 2;
 
-            File.WriteAllText(filename, mid.ToString());
+            File.WriteAllText(filename, mid.ToString("0.000"));
         }
-        static void CalculateMean(string filename)
+        static void CalculateMean(double[] x, string filename)
         {
-            double[] x = new double[n];
-            for (int i = 0; i < n; i++)
-                x[i] = GenerateRandomValue(0.0, 1.0);
-
             double M = 0;
             for (int i = 0; i < n; i++)
                 M += x[i];
 
             M /= n;
-            File.WriteAllText(filename, M.ToString());
+            File.WriteAllText(filename, M.ToString("0.000"));
         }
-        static void MaxLikelihoodEstimation(string filename)
+        static void MaxLikelihoodEstimation(double[] x, double lambda, string filename)
         {
-            double lambda = 2.5;
-            double[] x = new double[n];
-            for (int i = 0; i < n; i++)
-                x[i] = GenerateRandomValue(0.0, 1.0);
-
             Func<double, double> p = (double t) =>
             {
                 double result = 0.0;
@@ -149,15 +140,10 @@ namespace Lab1
                 return result;
             };
 
-            File.WriteAllText(filename, Optimization.GoldenRatio(p, -5.0, 5.0, 1.0e-9).ToString());
+            File.WriteAllText(filename, Optimization.GoldenRatio(p, -5.0, 5.0, 1.0e-9).ToString("0.000"));
         }
-        static void Радикальная(string filename, double delta)
+        static void Радикальная(double[] x, double lambda, string filename, double delta)
         {
-            double lambda = 2.5;
-            double[] x = new double[n];
-            for (int i = 0; i < n; i++)
-                x[i] = GenerateRandomValue(0.0, 1.0);
-
             Func<double, double> p = (double t) =>
             {
                 double result = 0.0;
@@ -167,17 +153,54 @@ namespace Lab1
                 return result;
             };
 
-            File.WriteAllText(filename, Optimization.GoldenRatio(p, -5.0, 5.0, 1.0e-9).ToString());
+            File.WriteAllText(filename, Optimization.GoldenRatio(p, -5.0, 5.0, 1.0e-9).ToString("0.000"));
         }
 
         static void Main(string[] args)
         {
-            CalculateMean("C:/repos/licisin/data/trash_sym_mean_1.txt");
-            CalculateMedian("C:/repos/licisin/data/trash_sym_median_1.txt");
-            MaxLikelihoodEstimation("C:/repos/licisin/data/trash_sym_max_likelihood_1.txt");
-            Радикальная("C:/repos/licisin/data/trash_sym_radical_1_0_1.txt", 1.0);
-            Радикальная("C:/repos/licisin/data/trash_sym_radical_0_5_1.txt", 0.5);
-            Радикальная("C:/repos/licisin/data/trash_sym_radical_0_1_1.txt", 0.1);
+            System.Globalization.CultureInfo culture = System.Threading.Thread.CurrentThread.CurrentCulture.Clone() as System.Globalization.CultureInfo ?? throw new InvalidCastException();
+            culture.NumberFormat = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
+            System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+            double[] x = new double[n];
+
+            for (int i = 0; i < n; i++)
+                x[i] = GenerateRandomValue(0.0, 1.0);
+
+            double lambda = 1.0;
+
+            CalculateMean(x, "C:/repos/licisin/data/clean_mean.txt");
+            CalculateMedian(x, "C:/repos/licisin/data/clean_median.txt");
+            MaxLikelihoodEstimation(x, lambda, "C:/repos/licisin/data/clean_max_likelihood.txt");
+            Радикальная(x, lambda, "C:/repos/licisin/data/clean_radical_1_0.txt", 1.0);
+            Радикальная(x, lambda, "C:/repos/licisin/data/clean_radical_0_5.txt", 0.5);
+            Радикальная(x, lambda, "C:/repos/licisin/data/clean_radical_0_1.txt", 0.1);
+
+            for (int i = 0; i < n; i++)
+                x[i] = GenerateTrashValue(0.0, 0.0, 1.0, 2.5);
+
+            lambda = 2.5;
+
+            CalculateMean(x, "C:/repos/licisin/data/trash_sym_mean.txt");
+            CalculateMedian(x, "C:/repos/licisin/data/trash_sym_median.txt");
+            MaxLikelihoodEstimation(x, lambda, "C:/repos/licisin/data/trash_sym_max_likelihood.txt");
+            Радикальная(x, lambda, "C:/repos/licisin/data/trash_sym_radical_1_0.txt", 1.0);
+            Радикальная(x, lambda, "C:/repos/licisin/data/trash_sym_radical_0_5.txt", 0.5);
+            Радикальная(x, lambda, "C:/repos/licisin/data/trash_sym_radical_0_1.txt", 0.1);
+
+            for (int i = 0; i < n; i++)
+                x[i] = GenerateTrashValue(0.0, 1.325, 1.0, 2.5);
+
+            lambda = 2.5;
+
+            CalculateMean(x, "C:/repos/licisin/data/trash_ass_mean.txt");
+            CalculateMedian(x, "C:/repos/licisin/data/trash_ass_median.txt");
+            MaxLikelihoodEstimation(x, lambda, "C:/repos/licisin/data/trash_ass_max_likelihood.txt");
+            Радикальная(x, lambda, "C:/repos/licisin/data/trash_ass_radical_1_0.txt", 1.0);
+            Радикальная(x, lambda, "C:/repos/licisin/data/trash_ass_radical_0_5.txt", 0.5);
+            Радикальная(x, lambda, "C:/repos/licisin/data/trash_ass_radical_0_1.txt", 0.1);
         }
     }
 }
