@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
+
 namespace Lab1
 {
     class Program
@@ -111,79 +112,72 @@ namespace Lab1
         static void CalculateMedian(string filename)
         {
             double[] x = new double[n];
+            for (int i = 0; i < n; i++)
+                x[i] = GenerateRandomValue(0.0, 1.0);
 
-            using (BinaryReader reader = new BinaryReader(File.OpenRead(filename)))
-            {
-                for (int i = 0; i < n; i++)
-                {
-                    x[i] = reader.ReadDouble();
-
-                    if (i % (n / 3) == 0)
-                        Console.WriteLine($"Загружено {i} значений");
-                }
-            }
-
-            Console.WriteLine("Начало сортировки массива");
             Array.Sort(x);
-            Console.WriteLine("Сортировка массива окончена");
-
             double mid = (x[n / 2] + x[n / 2 + 1]) / 2;
-            Console.WriteLine($"Медиана: { mid }");
 
-            File.WriteAllText(filename + "_median.txt", mid.ToString());
+            File.WriteAllText(filename, mid.ToString());
         }
         static void CalculateMean(string filename)
         {
             double[] x = new double[n];
-
-            using (BinaryReader reader = new BinaryReader(File.OpenRead(filename)))
-            {
-                for (int i = 0; i < n; i++)
-                {
-                    x[i] = reader.ReadDouble();
-
-                    if (i % (n / 3) == 0)
-                        Console.WriteLine($"Загружено {i} значений");
-                }
-            }
+            for (int i = 0; i < n; i++)
+                x[i] = GenerateRandomValue(0.0, 1.0);
 
             double M = 0;
             for (int i = 0; i < n; i++)
                 M += x[i];
 
             M /= n;
-            Console.WriteLine($"Среднее арифметическое: { M }");
-
-            File.WriteAllText(filename + "_mean.txt", M.ToString());
+            File.WriteAllText(filename, M.ToString());
         }
-
-        static double MaxLikelihoodEstimation(int n, double tetta, double lambda, double eps)
+        static void MaxLikelihoodEstimation(string filename)
         {
-            double[] y = new double[n];
+            double lambda = 2.5;
+            double[] x = new double[n];
             for (int i = 0; i < n; i++)
-                y[i] = GenerateRandomValue(tetta, lambda);
+                x[i] = GenerateRandomValue(0.0, 1.0);
 
             Func<double, double> p = (double t) =>
             {
                 double result = 0.0;
                 for (int i = 0; i < n; i++)
-                    result += -Math.Log(f((y[i] - t) / lambda));
+                    result += -Math.Log(f((x[i] - t) / lambda));
 
                 return result;
             };
 
-            return Optimization.GoldenRatio(p, -5.0, 5.0, eps);
+            File.WriteAllText(filename, Optimization.GoldenRatio(p, -5.0, 5.0, 1.0e-9).ToString());
+        }
+        static void Радикальная(string filename, double delta)
+        {
+            double lambda = 2.5;
+            double[] x = new double[n];
+            for (int i = 0; i < n; i++)
+                x[i] = GenerateRandomValue(0.0, 1.0);
+
+            Func<double, double> p = (double t) =>
+            {
+                double result = 0.0;
+                for (int i = 0; i < n; i++)
+                    result += -Math.Pow(f((x[i] - t) / lambda), delta) / Math.Pow(f(0), delta);
+
+                return result;
+            };
+
+            File.WriteAllText(filename, Optimization.GoldenRatio(p, -5.0, 5.0, 1.0e-9).ToString());
         }
 
         static void Main(string[] args)
         {
-            //GenerateTrashAsymmetric("C:/repos/data/random_trash_symmetric_1");
-
-            //CalculateMean("C:/repos/data/random_trash_symmetric_1");
-            //CalculateMedian("C:/repos/data/random_trash_symmetric_1");
-
-            for (int i = 0; i < 100; i++)
-                Console.WriteLine(MaxLikelihoodEstimation(100000, 0.0, 1.0, 1.0e-9));
+            CalculateMean("C:/repos/licisin/data/trash_sym_mean_1.txt");
+            CalculateMedian("C:/repos/licisin/data/trash_sym_median_1.txt");
+            MaxLikelihoodEstimation("C:/repos/licisin/data/trash_sym_max_likelihood_1.txt");
+            Радикальная("C:/repos/licisin/data/trash_sym_radical_1_0_1.txt", 1.0);
+            Радикальная("C:/repos/licisin/data/trash_sym_radical_0_5_1.txt", 0.5);
+            Радикальная("C:/repos/licisin/data/trash_sym_radical_0_1_1.txt", 0.1);
         }
     }
 }
